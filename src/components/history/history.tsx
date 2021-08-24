@@ -11,7 +11,6 @@ export function History(): JSX.Element {
     const context: AppContextType = useAppContext();
     const ref = useRef<HTMLDivElement>(null);
     useEffect((): void => {
-        console.log('called??');
         ref!.current?.scrollIntoView({
             behavior: 'smooth',
             block: 'end',

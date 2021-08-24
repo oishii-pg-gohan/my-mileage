@@ -14,7 +14,6 @@ export type ActionUpdateComments = {
 };
 
 export function reducerUpdateComments(state: AppState, action: ActionUpdateComments): AppState {
-    console.log('reducerUpdateComments action: ', action);
     return {
         ...state,
         comments: action.data.comments

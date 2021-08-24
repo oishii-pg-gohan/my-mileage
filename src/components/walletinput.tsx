@@ -18,6 +18,7 @@ export function WalletInput(): JSX.Element {
             }
         });
     }
+
     return (
         <div className="flex text-center">
             <div className="flex">

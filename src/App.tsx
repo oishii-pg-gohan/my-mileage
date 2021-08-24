@@ -3,19 +3,20 @@ import { Register } from 'components/register';
 import { WalletInput } from 'components/walletinput';
 import { useEffect } from 'react';
 import { AppContextType, useAppContext } from 'state/context';
-import { fetchComments, init } from 'web3/web3js';
+import { fetchComments, init, setContextGetter } from 'web3/web3js';
 
 let context: AppContextType;
-
-const initWeb3 = () => {
-  init(context);
-}
 
 export function App() {
   context = useAppContext();
 
+  const getContext = () => {
+    return context;
+  }
+
   useEffect(() => {
-    initWeb3();
+    setContextGetter(getContext)
+    init();
     fetchComments();
   }, []);
 

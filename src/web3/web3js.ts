@@ -5,26 +5,24 @@ import { AppContextType } from 'state/context';
 import { Comment } from 'modules/update_comments';
 
 // Ethereum上に登録したコントラクトのアドレス
-const contractAddress: string = '0xaf49998f12CC2Fb1D710B86bB3632Ae090f32158';
-
-/*
- * ここでcontext持つのはたぶん良くない。
- * react component周りで管理するべきだけど、今回はsampleアプリなのでこのまま。
- */
-let context: AppContextType;
+const contractAddress: string = '0x182bd8E4C481DB6f3b5f5a940897C49604f31b00';
 
 // web3オブジェクト。Ethereumとのインターフェースはこいつにお任せ
 let web3js: Web3;
 let contract: Contract;
+
+let getContext: () => AppContextType;
+
+export function setContextGetter(getter: () => AppContextType) {
+    getContext = getter;
+}
 
 /**
  * web3オブジェクトの初期処理
  * 
  * @param _context 本アプリのstateのcontext。※react component内でuseContext()で取得したものを無理矢理渡している
  */
-export function init(_context: AppContextType): void {
-    context = _context;
-
+export function init(): void {
     /**
      * Ethereumと通信するプロぱいだーを指定。
      * ws、http、MetaMask経由など指定できる。
@@ -45,17 +43,11 @@ export function init(_context: AppContextType): void {
 
     // コントラクトで発生するイベントをlisten。
     contract.events.NewComment()
-        .on('data', (event: any): void => {
-            console.log('NewComment event: ', event);
-            fetchComments();
-        })
+        .on('data', (): void => fetchComments())
         .on('error', console.error);
 
     contract.events.UpdatedComment()
-        .on('data', (event: any): void => {
-            console.log('UpdatedComment event: ', event);
-            fetchComments();
-        })
+        .on('data', (): void => fetchComments())
         .on('error', console.error);
 }
 
@@ -83,14 +75,14 @@ export function fetchComments(): void {
                     lovedUsers: data.lovedUsers
                 }
             });
-            context.dispatch({
+            getContext().dispatch({
                 type: 'update_comments',
                 data: {
                     comments: comments
                 },
             });
         } else {
-            console.log(error);
+            console.error(error);
         }
     });
 }
@@ -107,9 +99,9 @@ export function addComment(comment: string): void {
      * パブリックチェーンに乗せる際はガス代とか意識しないと破産のもとなので注意。MetaMask使った方が良い。
      */
     contract.methods.addComment(comment).send({
-        from: context.state.myWalletAddress,
+        from: getContext().state.myWalletAddress,
         gasPrice: '100',
-        gas: 200000,
+        gas: 100000,
     });
 }
 
@@ -122,7 +114,7 @@ export function addComment(comment: string): void {
 export function loveComment(id: number): void {
     // いいね！するコントラクトを実行
     contract.methods.loveComment(id).send({
-        from: context.state.myWalletAddress,
+        from: getContext().state.myWalletAddress,
         gasPrice: '100',
         gas: 200000,
     });
@@ -141,14 +133,14 @@ export function existsAccount(address: string): void {
      */
     web3js.eth.getAccounts((error, accounts): void => {
         if (!error) {
-            context.dispatch({
+            getContext().dispatch({
                 type: 'update_valid_account',
                 data: {
                     validAccount: accounts.includes(address)
                 }
             });
         } else {
-            console.log('error: ', error);
+            console.error('error: ', error);
         }
     });
 }
